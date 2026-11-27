@@ -53,7 +53,8 @@ input:disabled{opacity:.55}
 .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
 .btn:focus-visible{outline:3px solid var(--cob2);outline-offset:2px}
 .btn[hidden]{display:none}
-.modes{display:inline-flex;border:2px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.toggles{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.modes{display:inline-flex;border:2px solid var(--line);border-radius:10px;overflow:hidden}
 .modes button{min-height:44px;padding:0 16px;border:0;background:var(--card);color:var(--ink);font:600 15px Inter,sans-serif;cursor:pointer}
 .modes button[aria-pressed=true]{background:var(--cob);color:#fff}
 .modes button:disabled{cursor:not-allowed;opacity:.6}
@@ -77,7 +78,7 @@ tr.ok{background:light-dark(#eaf7ef,#13301f)}
   <div class="top">
     <div>
       <h1>Cultura general por letra</h1>
-      <p>Elige una letra del rosco. Todas las respuestas empiezan por esa letra. Juega contra el reloj (3 minutos para 12 pistas) o sin límite de tiempo.</p>
+      <p>Elige una letra del rosco. Todas las respuestas empiezan por esa letra. Dos tandas de 12 pistas por letra. Juega contra el reloj (3 minutos) o sin límite de tiempo.</p>
     </div>
   </div>
   <div class="rosco" id="rosco">
@@ -85,9 +86,15 @@ tr.ok{background:light-dark(#eaf7ef,#13301f)}
   </div>
 </section>
 <main class="play">
+  <div class="toggles">
+  <div class="modes" role="group" aria-label="Tanda de preguntas">
+    <button id="s-1" aria-pressed="true">Tanda #1</button>
+    <button id="s-2" aria-pressed="false">Tanda #2</button>
+  </div>
   <div class="modes" role="group" aria-label="Modo de juego">
     <button id="m-timed" aria-pressed="true">Con tiempo</button>
     <button id="m-free" aria-pressed="false">Sin tiempo</button>
+  </div>
   </div>
   <div class="bar">
     <input id="ans" placeholder="Escribe tu respuesta aquí" autocomplete="off" autocapitalize="off" spellcheck="false" disabled aria-label="Respuesta">
@@ -97,7 +104,7 @@ tr.ok{background:light-dark(#eaf7ef,#13301f)}
   </div>
   <p class="msg" id="msg" aria-live="polite">Pulsa «Empezar» para ver las pistas. Las respuestas se aceptan solas al escribirlas, con o sin tildes.</p>
   <table id="tbl"><thead><tr><th>Pista</th><th>Respuesta</th></tr></thead><tbody id="rows"></tbody></table>
-  <p class="note">Pistas originales escritas por Claude, siguiendo el formato de la serie «Cultura general por letra» de CanoM en JetPunk. Tu mejor puntuación por letra se guarda en este navegador, por separado para cada modo.</p>
+  <p class="note">Pistas originales escritas por Claude, siguiendo el formato de la serie «Cultura general por letra» de CanoM en JetPunk. Tu mejor puntuación por letra se guarda en este navegador, por separado para cada tanda y modo.</p>
 </main>
 </div>
 <script>
@@ -440,16 +447,360 @@ País africano con capital en Harare|Zimbabue|Zimbabwe
 Ciudad más poblada de Suiza|Zúrich|Zurich
 Género teatral español que mezcla partes habladas y cantadas|Zarzuela
 Lugar donde se exhiben animales|Zoológico|Zoo`;
+const RAW2=`A
+Fruto con el que se prepara el guacamole|Aguacate|Avocado
+País con capital en Buenos Aires|Argentina
+Ave rapaz que aparece en el escudo de México|Águila
+Capital de los Países Bajos|Ámsterdam|Amsterdam
+Unidad de intensidad de corriente eléctrica|Amperio|Ampere
+Metal ligero de símbolo Al|Aluminio
+Héroe griego que solo era vulnerable en el talón|Aquiles
+Mamífero americano protegido por una coraza|Armadillo
+Palacio nazarí de Granada|Alhambra|La Alhambra
+Cuarto mes del año|Abril
+Primer hombre según el Génesis|Adán
+Cordillera europea donde está el Mont Blanc|Alpes|Los Alpes
+B
+País con capital en Sofía|Bulgaria
+Capital de Colombia|Bogotá
+Ave nocturna con «orejas» de plumas|Búho
+Libertador venezolano que da nombre a un país (apellido)|Bolívar|Simón Bolívar
+Capital de Hungría|Budapest
+Fruta tropical alargada que en España se suele llamar plátano|Banana|Banano
+País andino con capital en Sucre|Bolivia
+Archipiélago español del Mediterráneo|Baleares|Islas Baleares
+Danza clásica que se baila con zapatillas de punta|Ballet
+Unidad de presión de la que deriva el milibar|Bar
+Capital de Tailandia|Bangkok
+Microorganismo unicelular sin núcleo|Bacteria|Bacterias
+C
+País con capital en Ottawa|Canadá
+Anfiteatro romano más famoso|Coliseo
+Capital de Egipto|Cairo|El Cairo
+Archipiélago español del Atlántico|Canarias|Islas Canarias
+Reptil famoso por cambiar de color|Camaleón
+Metal rojizo de símbolo Cu|Cobre
+Escritor argentino de «Rayuela»|Cortázar|Julio Cortázar
+Capital de Dinamarca|Copenhague
+Ciudad andaluza de la Mezquita|Córdoba
+Conjunto de huesos que protege el cerebro|Cráneo
+Pintor francés obsesionado con la montaña Sainte-Victoire|Cézanne|Paul Cézanne
+País asiático con capital en Pekín|China
+D
+Pieza que sirve para masticar|Diente|Dientes
+Último día de la semana en el calendario español|Domingo
+Autor de «Los tres mosqueteros»|Dumas|Alejandro Dumas
+Ciudad alemana a orillas del Elba bombardeada en 1945|Dresde|Dresden
+Unidad con la que se mide la intensidad del sonido|Decibelio|Decibelios
+Dios griego del vino|Dioniso|Dionisio;Dionisos
+Juego de 28 fichas con puntos|Dominó
+Músculo que separa el tórax del abdomen|Diafragma
+Camélido de una sola joroba|Dromedario
+Río que atraviesa Viena y Budapest|Danubio
+Capital de Senegal|Dakar
+Filósofo del «pienso, luego existo»|Descartes|René Descartes
+E
+País báltico con capital en Tallin|Estonia
+Torre metálica de París|Eiffel|Torre Eiffel
+Ave australiana grande que no vuela|Emú
+Partícula subatómica con carga negativa|Electrón
+Ciudad turca a caballo entre Europa y Asia|Estambul
+País africano con capital en Adís Abeba|Etiopía
+Fenómeno en el que la Luna tapa el Sol|Eclipse
+Río más caudaloso de España|Ebro
+Matemático griego autor de «Los elementos»|Euclides
+Árbol australiano cuyas hojas comen los koalas|Eucalipto
+Animal marino con forma de estrella de cinco brazos|Estrella de mar|Estrella
+Comunidad autónoma con capital en Mérida|Extremadura
+F
+País insular del Pacífico con capital en Suva|Fiyi|Fiji
+Partícula elemental de la luz|Fotón
+Escudería de Fórmula 1 del «cavallino rampante»|Ferrari
+Elemento químico de símbolo F, presente en las pastas de dientes|Flúor
+Instrumento de viento que se toca de lado|Flauta|Flauta travesera
+Personaje que vende su alma al diablo en la obra de Goethe|Fausto
+Estado de EE. UU. donde está Miami|Florida
+Resto petrificado de un ser vivo antiguo|Fósil
+Fiesta valenciana de marzo en la que se queman monumentos|Fallas|Las Fallas
+Torre con una luz que orienta a los barcos|Faro
+Físico italiano que construyó el primer reactor nuclear|Fermi|Enrico Fermi
+Pueblo navegante que fundó Gadir, la actual Cádiz|Fenicios|Fenicio
+G
+País con capital en Atenas|Grecia
+Ciudad andaluza de la Alhambra|Granada
+Ciudad suiza con sede europea de la ONU y de la Cruz Roja|Ginebra
+Hembra del gallo|Gallina
+Fundador de Microsoft (apellido)|Gates|Bill Gates
+Primer ser humano en viajar al espacio (apellido)|Gagarin|Gagarin;Yuri Gagarin
+Museo de titanio de Bilbao|Guggenheim
+País centroamericano de cultura maya con capital homónima|Guatemala
+Río sagrado de la India|Ganges
+Insecto saltador que canta frotando las alas|Grillo
+Conjunto de miles de millones de estrellas|Galaxia
+Autor alemán de «Fausto»|Goethe
+H
+Capital de Vietnam|Hanói|Hanoi
+Ave rapaz famosa por su velocidad en picado|Halcón
+País caribeño que comparte isla con la República Dominicana|Haití
+Estado de EE. UU. formado por islas del Pacífico|Hawái|Hawaii
+Gas más ligero que el aire con el que se inflan globos|Helio
+Físico británico de «Breve historia del tiempo»|Hawking|Stephen Hawking
+Carroñero africano conocido por su «risa»|Hiena
+Antigua colonia británica devuelta a China en 1997|Hong Kong|Hongkong
+Historiador griego llamado «padre de la historia»|Heródoto
+Médico griego que da nombre a un juramento|Hipócrates
+Agua en estado sólido|Hielo
+Héroe de los doce trabajos|Hércules|Heracles
+I
+País con capital en Yakarta|Indonesia
+País con capital en Dublín|Irlanda
+País con capital en Bagdad|Irak|Iraq
+Isla balear famosa por su vida nocturna|Ibiza|Eivissa
+Vivienda de bloques de hielo|Iglú
+Poema de Homero sobre la guerra de Troya|Ilíada
+Objeto que atrae el hierro|Imán
+Radiación invisible que usan los mandos a distancia|Infrarrojo|Infrarrojos
+Religión cuyo libro sagrado es el Corán|Islam
+Reina Católica casada con Fernando de Aragón|Isabel|Isabel I;Isabel la Católica
+Parte coloreada del ojo|Iris
+Estación más fría del año|Invierno
+J
+Estado mexicano del tequila y el mariachi|Jalisco
+Cerdo salvaje|Jabalí
+Piedra verde muy apreciada en China|Jade
+Producto estrella del cerdo ibérico|Jamón
+Sexto mes del año|Junio
+Reina de Castilla apodada «la Loca»|Juana|Juana la Loca;Juana I
+Género musical nacido en Nueva Orleans|Jazz
+Escritura con dibujos del antiguo Egipto|Jeroglíficos|Jeroglífico
+Ciudad gaditana famosa por sus vinos|Jerez|Jerez de la Frontera
+Orden religiosa fundada por Ignacio de Loyola|Jesuitas|Jesuita;Compañía de Jesús
+Ciudad más poblada de Sudáfrica|Johannesburgo
+Flor blanca de olor intenso|Jazmín
+K
+Fruta de piel marrón peluda y pulpa verde|Kiwi
+Fortaleza de Moscú, sede del gobierno ruso|Kremlin
+Prenda tradicional japonesa|Kimono|Quimono
+País más grande del mundo sin salida al mar|Kazajistán|Kazajstán
+Salsa de tomate típica de las patatas fritas|Kétchup|Ketchup;Kechup
+Distancia equivalente a mil metros|Kilómetro
+Capital de Afganistán|Kabul
+Ocio en el que se canta siguiendo la letra en una pantalla|Karaoke
+Astrónomo alemán de las leyes del movimiento de los planetas|Kepler|Johannes Kepler
+Filósofo alemán de «Crítica de la razón pura»|Kant|Immanuel Kant
+Volcán indonesio de la gran erupción de 1883|Krakatoa|Krakatau
+Unidad de temperatura del Sistema Internacional|Kelvin
+L
+Sede del gobierno de Bolivia|La Paz
+Antepasado salvaje del perro|Lobo
+Alimento con el que los mamíferos crían a sus hijos|Leche
+País báltico con capital en Vilna|Lituania
+Hortaliza base de muchas ensaladas|Lechuga
+Dramaturgo llamado «el Fénix de los Ingenios» (nombre)|Lope|Lope de Vega
+Gran ducado europeo con capital homónima|Luxemburgo
+País africano con capital en Trípoli|Libia
+País con capital en Beirut|Líbano
+Monje alemán que inició la Reforma protestante|Lutero|Martín Lutero
+Ciudad más poblada de Nigeria|Lagos
+Viaja a casi 300.000 km por segundo|Luz
+M
+Elefante peludo extinguido tras la última glaciación|Mamut
+Capital de Rusia|Moscú
+Primer presidente negro de Sudáfrica|Mandela|Nelson Mandela
+Ciudad andaluza donde nació Picasso|Málaga
+Capital de Uruguay|Montevideo
+Isla-Estado mediterránea con capital en La Valeta|Malta
+Animal marino gelatinoso que pica|Medusa
+Pintor impresionista de los nenúfares|Monet|Claude Monet
+Región entre el Tigris y el Éufrates|Mesopotamia
+Inventor italiano de la radio|Marconi|Guglielmo Marconi
+Tercer mes del año|Marzo
+País de Gengis Kan con capital en Ulán Bator|Mongolia
+N
+País del Himalaya con capital en Katmandú|Nepal
+Fruta cítrica típica de Valencia|Naranja
+Comunidad foral con capital en Pamplona|Navarra
+Órgano del olfato|Nariz
+País más poblado de África|Nigeria
+Poeta chileno de «Veinte poemas de amor y una canción desesperada»|Neruda|Pablo Neruda
+Gas de los letreros luminosos|Neón
+Undécimo mes del año|Noviembre
+Mamífero acuático que flota boca arriba|Nutria
+Líneas gigantes trazadas en el desierto de Perú|Nazca|Nasca
+Especie humana extinta que vivió en Europa|Neandertal|Neandertales;Neanderthal
+Precipitación de cristales de hielo|Nieve
+O
+Continente al que pertenece Australia|Oceanía
+Animal del que se obtiene la lana|Oveja
+Gran simio pelirrojo de Borneo y Sumatra|Orangután
+Gas de la capa que nos protege de los rayos ultravioleta|Ozono
+Molusco que puede producir perlas|Ostra
+Poema sobre el regreso de Ulises a Ítaca|Odisea|La Odisea
+Capital de Asturias|Oviedo
+Estación en la que caen las hojas|Otoño
+Mamífero australiano con pico de pato que pone huevos|Ornitorrinco
+Obra de teatro cantada de principio a fin|Ópera
+Constelación del cazador con un cinturón de tres estrellas|Orión
+Capa rojiza que sale en el hierro con la humedad|Óxido|Herrumbre
+P
+País con capital en Lisboa|Portugal
+Capital de Chequia|Praga
+Ciudad romana sepultada por una erupción en el año 79|Pompeya
+Animal marino de ocho brazos|Pulpo
+Ciudad de los Sanfermines|Pamplona|Iruña
+País del canal que une el Atlántico y el Pacífico|Panamá
+Punto mínimo de una imagen digital|Píxel|Pixel;Píxeles
+Matemático griego del teorema de los triángulos rectángulos|Pitágoras
+Caballo alado de la mitología griega|Pegaso
+Metal precioso de símbolo Ag|Plata
+Órganos de la respiración|Pulmones|Pulmón
+País con capital en Asunción|Paraguay
+Q
+Estado mexicano con capital en Santiago de ese mismo nombre|Querétaro
+Partícula elemental que forma protones y neutrones|Quark|Quarks;Cuark
+Núcleo galáctico lejano y extremadamente luminoso|Quásar|Quasar;Cuásar
+Provincia francófona de Canadá|Quebec|Québec
+Tratamiento contra el cáncer con fármacos|Quimioterapia|Quimio
+Puesto callejero donde se venden periódicos|Quiosco|Kiosco
+Tortilla mexicana doblada y rellena de queso|Quesadilla
+Unidad que mide la pureza del oro|Quilate|Quilates
+Grupo de cinco músicos|Quinteto
+Proteína del pelo y de las uñas|Queratina
+Monstruo con cabeza de león, cuerpo de cabra y cola de serpiente|Quimera
+Sustancia de la corteza de la quina usada contra la malaria|Quinina
+R
+Anfibio que croa|Rana
+Movimiento cultural nacido en Florencia en los siglos XV y XVI|Renacimiento
+Ciervo que tira del trineo de Papá Noel|Reno
+Río alemán que pasa por Colonia|Rin
+Piedra preciosa roja|Rubí
+País africano de las «mil colinas», con capital en Kigali|Ruanda|Rwanda
+Articulación donde está la rótula|Rodilla
+Pintor de «La escuela de Atenas»|Rafael|Rafael Sanzio
+Deporte de balón ovalado en el que se marcan ensayos|Rugby
+Comunidad autónoma con capital en Logroño|Rioja|La Rioja
+Faraón egipcio llamado «el Grande»|Ramsés|Ramsés II
+Máquina programable que hace tareas automáticas|Robot
+S
+Región helada del norte de Asia, en Rusia|Siberia
+Ciudad de la universidad en activo más antigua de España|Salamanca
+Capital de Corea del Sur|Seúl
+Ciudad australiana famosa por su Ópera|Sídney|Sidney;Sydney
+Fruta grande, verde por fuera y roja por dentro|Sandía
+País africano con tres capitales|Sudáfrica
+País con capital en Damasco|Siria
+Pez que remonta los ríos para desovar|Salmón
+Fluido rojo que recorre el cuerpo|Sangre
+Pasatiempo de rellenar con números del 1 al 9|Sudoku
+Elemento químico de símbolo Na, presente en la sal|Sodio
+Detective que vive en Baker Street (nombre)|Sherlock|Sherlock Holmes
+T
+País con capital en Bangkok|Tailandia
+Baile nacido en Buenos Aires y Montevideo|Tango
+Pez cartilaginoso depredador|Tiburón
+Ciudad del famoso caballo de madera|Troya
+Dinosaurio carnívoro llamado «rex»|Tiranosaurio|Tiranosaurio rex;T rex;Trex
+Autor ruso de «Guerra y paz»|Tolstói|Tolstoi;Tolstoy;León Tolstói
+Isla canaria más poblada|Tenerife
+Ave tropical con un pico enorme y colorido|Tucán
+Bebida mexicana de agave azul|Tequila
+Inventor serbio pionero de la corriente alterna|Tesla|Nikola Tesla
+País africano con capital homónima|Túnez
+Cereal con el que se hace el pan|Trigo
+U
+Lámina dura en la punta de los dedos|Uña|Uñas
+Ave blanquinegra que roba objetos brillantes|Urraca
+Obra de Tomás Moro sobre una sociedad ideal|Utopía
+País asiático con capital en Taskent|Uzbekistán
+Radiación solar que broncea la piel|Ultravioleta|UV
+Escritor bilbaíno de «Niebla»|Unamuno|Miguel de Unamuno
+Montes que separan Europa de Asia|Urales|Montes Urales
+Caja donde se depositan los votos|Urna
+Juego de cartas en el que hay que gritar su nombre|Uno
+Institución de enseñanza superior|Universidad
+Pequeña guitarra hawaiana de cuatro cuerdas|Ukelele|Ukulele;Ukulele
+Ciudad renacentista de Jaén, Patrimonio de la Humanidad junto a Baeza|Úbeda
+V
+Ciudad de la paella y de las Fallas|Valencia
+Animal que da leche y muge|Vaca
+Capital de Polonia|Varsovia
+Montaña que expulsa lava|Volcán
+Galaxia en la que vivimos|Vía Láctea
+Reina británica del siglo XIX que da nombre a una época|Victoria
+Ciudad castellana donde murió Colón|Valladolid
+Preparado que genera inmunidad frente a una enfermedad|Vacuna
+Nutriente cuya falta de tipo C causa el escorbuto|Vitamina|Vitaminas;Vitamina C
+Estación más calurosa del año|Verano
+Ciudad gallega con el mayor puerto pesquero de Europa|Vigo
+Cada hueso de la columna|Vértebra|Vértebras
+W
+Deporte de balón que se juega en una piscina|Waterpolo|Waterpolo
+Capital de Nueva Zelanda|Wellington
+Red de páginas que consultas con el navegador|Web|World Wide Web
+Sistema operativo de Microsoft|Windows
+Otro nombre del tungsteno, de símbolo W|Wolframio|Wolfram
+Reproductor portátil de casetes de Sony|Walkman
+Estado de EE. UU. donde está la mayor parte de Yellowstone|Wyoming
+Sartén honda de la cocina china|Wok
+Estadio londinense de grandes finales|Wembley
+Marsupial australiano famoso por sus cacas cúbicas|Wómbat|Wombat
+Género de películas de vaqueros|Western|Wéstern
+Calle de Nueva York sinónimo de su Bolsa|Wall Street
+X
+Marca china de móviles y patinetes|Xiaomi
+Empresa estadounidense de fotocopiadoras|Xerox
+Antigua grafía de Jerez, aún usada por un club de fútbol|Xerez
+Técnica de grabado sobre madera|Xilografía
+Planta adaptada a ambientes muy secos|Xerófila|Xerófita
+Palacio de verano de Kublai Kan, sinónimo de lugar idílico|Xanadú|Xanadu
+Talla de ropa más grande que la XL|XXL
+Perro mexicano sin pelo|Xoloitzcuintle|Xolo;Xoloitzcuintli
+Trasplante de órganos de animales a humanos|Xenotrasplante
+Región del oeste de China donde viven los uigures|Xinjiang
+Ninfa de las fuentes en la mitología asturiana|Xana|Xanas
+Municipio alicantino también llamado Jávea|Xàbia|Xabia
+Y
+Lácteo fermentado que se come con cuchara|Yogur|Yogurt
+Hembra del caballo|Yegua
+Abominable hombre de las nieves|Yeti
+Raíz tropical también llamada mandioca|Yuca
+Mitad oscura del símbolo taoísta que acompaña al yang|Yin
+Parque nacional de EE. UU. famoso por sus géiseres|Yellowstone
+Lugar donde se encuentran restos arqueológicos o minerales|Yacimiento
+Río más largo de Asia|Yangtsé|Yangtse;Yangtze
+Hierba con la que se prepara el mate|Yerba|Yerba mate
+Tramo central del intestino delgado|Yeyuno
+Fibra vegetal con la que se hacen sacos|Yute
+Unidad de longitud anglosajona de unos 91 cm|Yarda|Yardas
+Z
+Ciudad castellanoleonesa a orillas del Duero, capital de la provincia del mismo nombre|Zamora
+Líquido que se obtiene al exprimir fruta|Zumo
+Piedra preciosa azul|Zafiro
+Línea quebrada que va de un lado a otro|Zigzag
+Dirigible alemán de principios del siglo XX|Zepelín|Zeppelin;Zepelin
+Profeta persa del «Así habló…» de Nietzsche|Zaratustra|Zoroastro
+Persona que usa sobre todo la mano izquierda|Zurdo|Zurda
+Futbolista francés del cabezazo en la final de 2006|Zidane|Zinedine Zidane
+Archipiélago de Tanzania famoso por sus especias|Zanzíbar
+Ciencia que estudia los animales|Zoología
+Autor de «Don Juan Tenorio»|Zorrilla|José Zorrilla
+Última letra del abecedario español|Zeta|Z`;
 
-const DATA={};let L;
-for(const line of RAW.split('\n')){
-  if(/^[A-Z]$/.test(line)){L=line;DATA[L]=[];continue}
+function parse(raw){const D={};let L;
+for(const line of raw.split('\n')){
+  if(/^[A-Z]$/.test(line)){L=line;D[L]=[];continue}
   const [c,a,alt='']=line.split('|');
-  DATA[L].push({c,a,acc:[a,...alt.split(';').filter(Boolean)].map(norm)});
-}
+  D[L].push({c,a,acc:[a,...alt.split(';').filter(Boolean)].map(norm)});
+}return D}
+const SETS={1:parse(RAW),2:parse(RAW2)};
 function norm(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'')}
 const esc=s=>s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const LETTERS=Object.keys(DATA),TIME=180;
+const LETTERS=Object.keys(SETS[1]),TIME=180;
+let set=1;try{if(localStorage.getItem('cgl-set')==='2')set=2}catch(e){}
+const hm=/^#([A-Za-z])(2)?$/.exec(location.hash);if(hm)set=hm[2]?2:1;
+let DATA=SETS[set];
+const K=l=>l+(set===2?'2':'');
+const tag=()=>'#'+cur+(set===2?'2':'');
 let bests={timed:{},free:{}},free=false;
 try{bests.timed=JSON.parse(localStorage.getItem('cgl-best')||'{}');bests.free=JSON.parse(localStorage.getItem('cgl-best-free')||'{}');free=localStorage.getItem('cgl-mode')==='free'}catch(e){}
 let best=free?bests.free:bests.timed;
@@ -457,12 +808,19 @@ const saveBest=()=>{try{localStorage.setItem(free?'cgl-best-free':'cgl-best',JSO
 const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 const $=id=>document.getElementById(id);
 const rosco=$('rosco'),rows=$('rows'),ans=$('ans'),msg=$('msg');
-let cur=location.hash.length===2&&DATA[location.hash[1].toUpperCase()]?location.hash[1].toUpperCase():'A';
+let cur=hm?hm[1].toUpperCase():'A';
 let found=new Set(),state='idle',left=TIME,used=0,tick=null;
 function setMode(f){
   if(state==='run')return;free=f;best=free?bests.free:bests.timed;
   try{localStorage.setItem('cgl-mode',free?'free':'timed')}catch(e){}
   $('m-timed').setAttribute('aria-pressed',String(!free));$('m-free').setAttribute('aria-pressed',String(free));
+  reset();
+}
+function setSet(n){
+  if(state==='run')return;set=n;DATA=SETS[n];
+  try{localStorage.setItem('cgl-set',String(n))}catch(e){}
+  $('s-1').setAttribute('aria-pressed',String(n===1));$('s-2').setAttribute('aria-pressed',String(n===2));
+  try{history.replaceState(null,'',tag())}catch(e){}
   reset();
 }
 
@@ -472,12 +830,12 @@ LETTERS.forEach((l,i)=>{
   b.setAttribute('aria-label','Letra '+l);b.onclick=()=>pick(l);rosco.appendChild(b);
 });
 function paint(){
-  for(const l of LETTERS){const b=$('l-'+l),s=best[l]||0;
+  for(const l of LETTERS){const b=$('l-'+l),s=best[K(l)]||0;
     b.className=(l===cur?'cur ':'')+(s===DATA[l].length?'done':s>0?'part':'');
     b.title=s?('Mejor: '+s+'/'+DATA[l].length):'Sin jugar';}
-  $('big').textContent=cur;$('sc').textContent=found.size+' / '+DATA[cur].length;
+  $('big').textContent=cur;$('sc').textContent=found.size+' / '+DATA[cur].length+' · tanda '+set;
   $('clock').textContent=free?(state==='idle'?'Sin tiempo':fmt(used)):fmt(left);
-  $('m-timed').disabled=$('m-free').disabled=state==='run';
+  $('m-timed').disabled=$('m-free').disabled=$('s-1').disabled=$('s-2').disabled=state==='run';
 }
 function render(){
   const q=DATA[cur];
@@ -487,11 +845,11 @@ function render(){
     return `<tr class="${ok?'ok':miss?'miss':''}"><td class="c">${esc(x.c)}</td><td class="a">${ok||miss?esc(x.a):''}</td></tr>`}).join('');
   paint();
 }
-function pick(l){if(state==='run'&&!confirmSwitch())return;stop();cur=l;reset();try{history.replaceState(null,'','#'+l)}catch(e){location.hash=l}}
+function pick(l){if(state==='run'&&!confirmSwitch())return;stop();cur=l;reset();try{history.replaceState(null,'',tag())}catch(e){location.hash=tag()}}
 function confirmSwitch(){msg.textContent='Termina o ríndete antes de cambiar de letra.';return false}
 function reset(){found=new Set();state='idle';left=TIME;used=0;ans.value='';ans.disabled=true;
   $('start').hidden=false;$('start').textContent='Empezar';$('give').hidden=true;$('give').textContent=free?'Ver soluciones':'Rendirse';
-  const b=best[cur],modo=free?' (sin tiempo)':'';
+  const b=best[K(cur)],modo=(free?' (sin tiempo':' (con tiempo')+', tanda '+set+')';
   msg.textContent=b?`Tu mejor marca en la ${cur}${modo}: ${b} / ${DATA[cur].length}. Pulsa «Empezar».`:'Pulsa «Empezar» para ver las pistas. Las respuestas se aceptan solas al escribirlas, con o sin tildes.';
   render()}
 function start(){if(state==='over'){reset()}
@@ -501,7 +859,7 @@ function start(){if(state==='over'){reset()}
 function stop(){clearInterval(tick);tick=null}
 function finish(why){stop();state='over';ans.disabled=true;$('give').hidden=true;$('start').hidden=false;$('start').textContent='Reintentar';
   const n=found.size,t=DATA[cur].length;
-  if(n>(best[cur]||0)){best[cur]=n;saveBest()}
+  if(n>(best[K(cur)]||0)){best[K(cur)]=n;saveBest()}
   msg.textContent=`${why} Has acertado ${n} de ${t}.`+(n===t?' ¡Pleno!':' En rojo, las que faltaron.');render()}
 ans.addEventListener('input',()=>{
   if(state!=='run')return;const v=norm(ans.value);if(!v)return;
@@ -512,9 +870,12 @@ $('start').onclick=start;
 $('give').onclick=()=>finish(free?'Soluciones a la vista.':'Te has rendido.');
 $('m-timed').onclick=()=>setMode(false);
 $('m-free').onclick=()=>setMode(true);
+$('s-1').onclick=()=>setSet(1);$('s-2').onclick=()=>setSet(2);
+$('s-1').setAttribute('aria-pressed',String(set===1));$('s-2').setAttribute('aria-pressed',String(set===2));
 $('m-timed').setAttribute('aria-pressed',String(!free));$('m-free').setAttribute('aria-pressed',String(free));
 $('rnd').onclick=()=>{if(state==='run'){confirmSwitch();return}const pool=LETTERS.filter(l=>l!==cur);pick(pool[Math.floor(Math.random()*pool.length)])};
-addEventListener('hashchange',()=>{const h=location.hash.slice(1).toUpperCase();if(DATA[h]&&h!==cur&&state!=='run'){cur=h;reset()}});
+addEventListener('hashchange',()=>{const m=/^#([A-Za-z])(2)?$/.exec(location.hash);if(!m||state==='run')return;
+  const l=m[1].toUpperCase(),n=m[2]?2:1;if(!SETS[n][l])return;cur=l;if(n!==set)setSet(n);else reset()});
 reset();
 }
 </script>
